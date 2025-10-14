@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Tailwind CSS generated files
+*.css.map
+
+# VSCode settings
+.vscode/
+
+# Compiled JS files (if using TypeScript)
+*.js
+*.js.map
+
+# HTML and CSS are usually source, but ignore minified versions
+*.min.css
+*.min.js
