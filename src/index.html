@@ -7,6 +7,11 @@
     <title>Mini shop</title>
     <link href="./output.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .bg-primary { background-color: #00a8f1; }
+        .text-primary { color: #00a8f1; }
+        .hover\:bg-primary-dark:hover { background-color: #007bbd; }
+    </style>
 </head>
 
 <body class="m-0 p-0">
@@ -14,11 +19,11 @@
         <div class="w-full h-14 flex justify-between items-center px-4">
 
             <h1 class="text-2xl font-extrabold text-[#00a8f1] cursor-pointer">
-                Mini Shop  
+                Mini Shop
             </h1>
 
             <div class="flex space-x-6 text-gray-700 text-md">
-                <a href="#" class="text-[#00a8f1]">Home test update</a>
+                <a href="#" class="text-[#00a8f1]">Home</a>
                 <a href="#" class="text-[#00a8f1]">Contact Us</a>
                 <a href="#" class="text-[#00a8f1]">About Us</a>
                 <a href="#" class="font-semibold text-[#00a8f1]">Cart</a>
@@ -29,19 +34,21 @@
     <div class="flex w-full">
 
         <div id="products-container" class="w-3/4 h-full bg-gray-100 p-4 grid grid-cols-4 gap-4 overflow-y-auto">
-        </div>
+            </div>
 
-        <div class="w-1/4 h-145 bg-gray-200 p-4 text-gray-700 sticky top-14 h-140 flex flex-col">
+        <div class="w-1/4 bg-gray-200 p-4 text-gray-700 sticky top-14 flex flex-col h-[calc(100vh-3.5rem)]">
+            
             <h4 id="count-text" class="text-lg text-[#00a8f1] font-bold mb-4"></h4>
 
-            <div id="sidebar" class="flex space-y-4 justify-center text-center mb-4">
-                
+            <div id="sidebar" class="flex flex-col space-y-4 justify-start mb-4 flex-grow overflow-y-auto">
+                <p id="empty-cart-message" class="text-sm text-gray-500 p-4 text-center w-full">Add products to your cart!</p>
             </div>
 
             <div class="p-4 border-t border-gray-300 mt-auto">
                 <button
-                    class="w-full px-4 py-2 text-white bg-[#00a8f1] rounded-full hover:bg-[#000]/80 transition duration-150 text-left relative">
+                    class="w-full px-4 py-2 text-white bg-primary rounded-full hover:bg-primary-dark transition duration-150 text-center relative flex justify-between items-center">
                     Checkout Update
+                    <span id="cart-total-display" class="font-bold">$0.00</span>
                 </button>
             </div>
         </div>
@@ -50,15 +57,26 @@
     <script>
         const productsContainer = document.getElementById('products-container');
         const API_URL = 'https://fakestoreapi.com/products';
-        const storage = [];
+        let allProducts = [];
+        
+        const storage = []; 
+        let nextId = 1;
+        
         const countTextElement = document.getElementById('count-text');
         const sidebar = document.getElementById('sidebar');
-        const addBtn = document.querySelectorAll('.add-btn');
-        let nextId = 1;
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const cartTotalDisplay = document.getElementById('cart-total-display');
 
-
+        const calculateCartTotal = () => {
+            let total = 0;
+            storage.forEach(item => {
+                total += item.price * item.quantity;
+            });
+            return total;
+        };
+        
         const storageCount = () => {
-            const itemCount = storage.length;
+            const itemCount = storage.reduce((sum, item) => sum + item.quantity, 0);
 
             if (itemCount === 0) {
                 countTextElement.textContent = 'Your cart is empty.';
@@ -66,28 +84,103 @@
                 countTextElement.textContent = `You have ${itemCount} items in your cart.`;
             }
         }
-        storageCount();
 
+        const createSidebarItem = (item) => {
+            const itemTotal = (item.price * item.quantity).toFixed(2);
+            const pricePerUnit = item.price.toFixed(2);
 
-        // const createProductCard = (card) => {
-            
-        //     return `
-        //         <div class="flex flex-col">
-        //             <button>-</button>
-        //             <button>1</button>
-        //             <button>+</button>
+            return `
+                <div id="item-${item.id}" class="flex items-center space-x-4 p-2 rounded shadow w-full">
+                    
+                    <div class="flex flex-col items-center mr-2 text-xs text-gray-500 space-y-1">
+                        <button data-unique-id="${item.id}" data-action="increase" class="text-primary hover:text-blue-500 font-bold leading-none">+</button>
+                        <span>${item.quantity}</span>
+                        <button data-unique-id="${item.id}" data-action="decrease" class="text-primary hover:text-blue-500 font-bold leading-none">-</button>
+                    </div>
 
-        //         </div>
+                    <img class="w-10 h-10 object-contain" src="${item.image}" alt="${item.title}">
+                    
+                    <div class="flex flex-col flex-grow text-left">
+                        <h3 class="text-xs font-medium text-gray-800">${item.title.length > 20 ? item.title.slice(0, 17) + '...' : item.title}</h3>
+                        <p class="text-xs text-gray-600">${item.quantity} x $${pricePerUnit}</p>
+                    </div>
+
+                    <div class="text-right">
+                        <span class="text-sm font-semibold text-gray-800">$${itemTotal}</span>
+                        <button data-unique-id="${item.id}" data-action="remove" class="text-red-400 text-xs ml-3 hover:text-red-600 block">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
                 
-        //         <div class="flex flex-col space-y-1 ">
-        //             <img class="w-26 h-26 object-contain" src="${product.image}" alt="${product.title}">
-        //             <h3 class="text-sm font-semibold text-gray-800">${product.name}</h3>
-        //         <p class="text-xs text-gray-600">${product.price}</p>
-        //         </div>
-        //     `;
-        // };
+            `;
+        };
 
-        
+        const renderSidebar = () => { 
+            const total = calculateCartTotal();
+            cartTotalDisplay.textContent = `$${total.toFixed(2)}`;
+            sidebar.innerHTML = '';
+            
+            if (storage.length === 0) {
+                sidebar.appendChild(emptyCartMessage);
+                emptyCartMessage.style.display = 'block';
+            } else {
+                emptyCartMessage.style.display = 'none';
+                storage.forEach(item => {
+                    const itemHtml = createSidebarItem(item);
+                    sidebar.insertAdjacentHTML('beforeend', itemHtml);
+                });
+            }
+        };
+
+        const handleCartAction = (uniqueId, action) => {
+            const itemIndex = storage.findIndex(i => i.id === parseInt(uniqueId));
+            
+            if (itemIndex === -1) return; 
+
+            switch (action) {
+                case 'increase':
+                    storage[itemIndex].quantity++;
+                    break;
+                case 'decrease':
+                    storage[itemIndex].quantity--;
+                    if (storage[itemIndex].quantity <= 0) {
+                        storage.splice(itemIndex, 1);
+                    }
+                    break;
+                case 'remove':
+                    storage.splice(itemIndex, 1); 
+                    break;
+            }
+
+            storageCount();
+            renderSidebar();
+        };
+
+        const addToCart = (productId) => {
+            const product = allProducts.find(p => p.id === parseInt(productId));
+            
+            if (product) {
+                const existingItem = storage.find(i => i.productId === product.id);
+
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    const newItem = {
+                        ...product,
+                        id: nextId++, 
+                        productId: product.id, 
+                        quantity: 1
+                    };
+                    storage.push(newItem);
+                }
+                
+                storageCount();
+                renderSidebar();
+            } else {
+                console.error('Product not found for ID:', productId);
+            }
+        };
 
         function createProductCard(product) {
             const MAX_LENGTH = 30;
@@ -102,26 +195,28 @@
                 : product.description;
 
             return `
-            <div class="max-w-48 rounded-lg shadow-lg bg-white overflow-hidden flex flex-col">
-                <img class="w-32 h-32 object-contain m-auto " src="${product.image}" alt="${product.title}">
-                <div class="p-2 flex flex-col flex-grow">
-                    <h2 class="text-sm font-semibold text-gray-800 h-10 overflow-hidden">${productTitle}</h2>
-                    <p class="mt-1 text-gray-600 text-xs h-8 overflow-hidden">${productDescription}</p>
-                    <div class="mt-auto pt-2 flex items-center justify-between">
-                        <span class="text-lg font-bold text-gray-900">$${product.price}</span>
-                        <button class="px-8 py-2 text-xs font-medium text-white rounded-full bg-[#00a8f1] hover:bg-[#00a8f1]/80 transition duration-150">
-                            <i id="${product.id}" class="add-btn fa-solid fa-cart-shopping"></i>
-                        </button>
+                <div class="max-w-48 rounded-lg shadow-lg bg-white overflow-hidden flex flex-col">
+                    <img class="w-32 h-32 object-contain m-auto " src="${product.image}" alt="${product.title}">
+                    <div class="p-2 flex flex-col flex-grow">
+                        <h2 class="text-sm font-semibold text-gray-800 h-10 overflow-hidden">${productTitle}</h2>
+                        <p class="mt-1 text-gray-600 text-xs h-8 overflow-hidden">${productDescription}</p>
+                        <div class="mt-auto pt-2 flex items-center justify-between">
+                            <span class="text-lg font-bold text-gray-900">$${product.price.toFixed(2)}</span> 
+                            <button data-product-id="${product.id}" class="px-8 py-2 text-xs font-medium text-white rounded-full bg-[#00a8f1] hover:bg-[#00a8f1]/80 transition duration-150 add-btn-parent">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
         }
 
         async function fetchProducts() {
             try {
                 const response = await fetch(API_URL);
                 const products = await response.json();
+                
+                allProducts = products; 
 
                 products.forEach(product => {
                     const cardHtml = createProductCard(product);
@@ -134,7 +229,31 @@
             }
         }
 
+        productsContainer.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-product-id]');
+
+            if (button) {
+                const productId = button.getAttribute('data-product-id');
+                if (productId) {
+                    addToCart(productId);
+                }
+            }
+        });
+
+        sidebar.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-unique-id][data-action]');
+            
+            if (button) {
+                const uniqueId = button.getAttribute('data-unique-id');
+                const action = button.getAttribute('data-action');
+                if (uniqueId && action) {
+                    handleCartAction(uniqueId, action);
+                }
+            }
+        });
+
         fetchProducts();
+        renderSidebar(); 
     </script>
 </body>
 
