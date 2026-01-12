@@ -215,6 +215,7 @@
             }
         };
 
+
         const addToCart = (productId) => {
             const product = allProducts.find(p => p.id === parseInt(productId));
 
@@ -254,8 +255,8 @@
                     <div class="p-2 flex flex-col flex-grow">
                         <h2 class="text-sm font-semibold text-gray-800 overflow-hidden">${productTitle}</h2>
                         <p class="mt-1 text-gray-600 text-xs h-8 overflow-hidden">${productDescription}</p>
-                        <div class="mt-auto pt-2 flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-900">$${product.price.toFixed(2)}</span>
+                        <div class="mt-auto mx-auto pt-2 flex items-center justify-between">
+                            <span class="text-sm font-bold text-gray-900">$${product.price.toFixed(2)}</span>
                             <button data-product-id="${product.id}" class="px-8 py-2 text-xs font-medium text-white rounded-full bg-[#00a8f1] border-1 border-primary-dark transition duration-150 add-btn-parent cursor-pointer hover:bg-primary-dark transition duration-150">
                                 <i class="fa-solid fa-cart-shopping "></i>  
                             </button>
